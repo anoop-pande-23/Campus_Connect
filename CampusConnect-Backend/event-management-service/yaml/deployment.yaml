@@ -33,7 +33,7 @@ spec:
     spec:
       containers:
         - name: ems-app
-          image: anoop-pande-23/ems-service:latest
+          image: <your-registry>/ems-service:latest
           ports:
             - containerPort: 3001
           env:

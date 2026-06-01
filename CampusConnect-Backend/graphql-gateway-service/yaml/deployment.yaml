@@ -33,7 +33,7 @@ spec:
     spec:
       containers:
         - name: graphql-app
-          image: anoop-pande-23/graphql-gateway:latest
+          image: <your-registry>/graphql-gateway:latest
           ports:
             - containerPort: 3004
           env:

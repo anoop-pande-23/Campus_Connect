@@ -153,6 +153,9 @@ Campus_Connect/
 
 ## Getting Started
 
+> **Local development** works out of the box with Docker Compose — all services are built from source.
+> **Kubernetes deployment** requires building and pushing Docker images to your own registry first (see [Kubernetes section](#kubernetes-deployment) below).
+
 ### Prerequisites
 - Docker & Docker Compose
 - Node.js LTS + npm
@@ -192,6 +195,28 @@ npm run dev
 ---
 
 ## Kubernetes Deployment
+
+> Before applying K8s manifests, you need to build and push Docker images to your own registry.
+> Update the `image:` field in each `yaml/deployment.yaml` to match your registry.
+
+```bash
+# Build and push each service (replace <your-registry> with your Docker Hub username)
+docker build -t <your-registry>/uss-service:latest CampusConnect-Backend/user-social-service/
+docker build -t <your-registry>/ems-service:latest CampusConnect-Backend/event-management-service/
+docker build -t <your-registry>/rns-service:latest CampusConnect-Backend/notification-service/
+docker build -t <your-registry>/drs-service:latest CampusConnect-Backend/discovery-recommendation-service/
+docker build -t <your-registry>/graphql-gateway:latest CampusConnect-Backend/graphql-gateway-service/
+docker build -t <your-registry>/campus-connect-frontend:latest CampusConnect-Frontend/
+
+docker push <your-registry>/uss-service:latest
+docker push <your-registry>/ems-service:latest
+docker push <your-registry>/rns-service:latest
+docker push <your-registry>/drs-service:latest
+docker push <your-registry>/graphql-gateway:latest
+docker push <your-registry>/campus-connect-frontend:latest
+```
+
+Then deploy:
 
 ```bash
 # Install Strimzi Kafka Operator
