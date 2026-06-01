@@ -1,0 +1,138 @@
+# apiVersion: networking.k8s.io/v1
+# kind: Ingress
+# metadata:
+#   name: campus-connect-ingress
+#   namespace: campus-connect
+#   annotations:
+#     nginx.ingress.kubernetes.io/proxy-connect-timeout: "300"
+#     nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
+#     nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+    # nginx.ingress.kubernetes.io/enable-cors: "true"
+    # nginx.ingress.kubernetes.io/cors-allow-origin: "http://localhost:5173,http://localhost:3000,http://localhost:4173"
+#     nginx.ingress.kubernetes.io/cors-allow-methods: "GET, POST, OPTIONS, PUT, DELETE"
+#     nginx.ingress.kubernetes.io/cors-allow-headers: "DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization,X-User-ID"
+#     nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
+
+#     # nginx.ingress.kubernetes.io/proxy-set-headers: "nginx-proxy-set-headers"
+  
+#     nginx.ingress.kubernetes.io/proxy-set-headers: "X-User-ID"
+
+#     nginx.ingress.kubernetes.io/configuration-snippet: |
+#       proxy_set_header X-User-ID $http_x_user_id;
+
+# spec:
+#   ingressClassName: nginx
+#   rules:            
+#     - host: campus-connect.ingress.cc.vg-project.shoot.canary.k8s-hana.ondemand.com
+#       http:
+#         paths:
+#           # 1. Routing to User Service (USS)
+#           - path: /users
+#             pathType: Prefix
+#             backend:
+#               service:
+#                 name: user-social-service
+#                 port:
+#                   number: 80
+#           # 2. Routing to Event Service (EMS)
+#           - path: /events
+#             pathType: Prefix
+#             backend:
+#               service:
+#                 name: event-management-service
+#                 port:
+#                   number: 80
+#           # 3. Routing to Notification Service (RNS)
+#           - path: /notifications
+#             pathType: Prefix
+#             backend:
+#               service:
+#                 name: notification-service
+#                 port:
+#                   number: 80
+          # - path: /graphql
+          #   pathType: Prefix
+          #   backend:
+          #     service:
+          #       name: graphql-gateway-service
+          #       port:
+          #         number: 80
+#           - path: / #
+#             pathType: Prefix
+#             backend:
+#               service:
+#                 name: notification-service
+#                 port:
+#                   number: 80
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: campus-connect-ingress
+  namespace: campus-connect
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "60"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "60"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "60"
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "http://localhost:5173,http://localhost:3000,http://localhost:4173"
+    nginx.ingress.kubernetes.io/cors-allow-methods: "GET, POST, OPTIONS, PUT, DELETE"
+    nginx.ingress.kubernetes.io/cors-allow-headers: "DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization,X-User-ID"
+    nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
+
+    nginx.ingress.kubernetes.io/proxy-set-headers: "nginx-proxy-set-headers"
+    # Important for microservices routing
+    # nginx.ingress.kubernetes.io/rewrite-target: /$2
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: campus-connect.ingress.cc.vg-project.shoot.canary.k8s-hana.ondemand.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: campus-connect-frontend
+                port:
+                  number: 80
+          # - path: /notifications #
+          #   pathType: Prefix
+          #   backend:
+          #     service:
+          #       name: notification-service
+          #       port:
+          #         number: 80
+          # 1. Routing to User Service (USS)
+          - path: /users
+            pathType: Prefix
+            backend:
+              service:
+                name: user-social-service
+                port:
+                  number: 80 # The port the K8s Service exposes (from USS manifest)
+          # 2. Routing to Event Service (EMS)
+          - path: /events
+            pathType: Prefix
+            backend:
+              service:
+                name: event-management-service
+                port:
+                  number: 80 
+          # 3. Routing to Notification Service (RNS)
+          - path: /notifications
+            pathType: Prefix
+            backend:
+              service:
+                name: notification-service
+                port:
+                  number: 80 
+          - path: /graphql
+            pathType: Prefix
+            backend:
+              service:
+                name: graphql-gateway-service
+                port:
+                  number: 80
+          # Frontend - catch-all (MUST be last)
+        

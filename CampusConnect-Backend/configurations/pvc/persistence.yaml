@@ -1,0 +1,48 @@
+# 1. Persistent Volume Claim 
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-uss-pvc
+  namespace: campus-connect
+spec:
+  accessModes:
+    - ReadWriteOnce 
+  resources:
+    requests:
+      storage: 100Mi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-ems-pvc
+  namespace: campus-connect
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Mi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mongodb-drs-pvc
+  namespace: campus-connect
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Mi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-rns-pvc
+  namespace: campus-connect
+spec:
+  accessModes:
+    - ReadWriteOnce 
+  resources:
+    requests:
+      storage: 100Mi 

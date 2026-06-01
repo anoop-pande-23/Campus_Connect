@@ -1,0 +1,157 @@
+version: "3.8"
+
+services:
+  # --- 1. Infrastructure Services ---
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.0
+    container_name: zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+  kafka:
+    image: confluentinc/cp-kafka:7.4.0
+    container_name: kafka
+    ports:
+      - "9094:9094" # External port for local USS/EMS/RNS testing (as configured)
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://0.0.0.0:9094
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9094 # CRITICAL: Advertised host is localhost
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    depends_on:
+      - zookeeper
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis_cache
+    ports:
+      - "6379:6379"
+
+  mongodb:
+    image: mongo:5.0-focal
+    container_name: mongodb_drs
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: campus_connect_drs
+
+  # --- 2. Database Services (PostgreSQL) ---
+  postgres-uss:
+    image: postgres:15-alpine
+    container_name: postgres_uss
+    environment:
+      POSTGRES_DB: campus_connect_users
+      POSTGRES_USER: user_service_admin
+      POSTGRES_PASSWORD: securepassword
+    volumes:
+      - pg_uss_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  postgres-ems:
+    image: postgres:15-alpine
+    container_name: postgres_ems
+    environment:
+      POSTGRES_DB: campus_connect_events
+      POSTGRES_USER: event_service_admin
+      POSTGRES_PASSWORD: securepassword_events
+    ports:
+      - "5433:5432"
+    volumes:
+      - pg_ems_data:/var/lib/postgresql/data
+
+  postgres-rns:
+    image: postgres:15-alpine
+    container_name: postgres_rns
+    environment:
+      POSTGRES_DB: campus_connect_rns
+      POSTGRES_USER: rns_service_admin
+      POSTGRES_PASSWORD: securepassword_rns
+    ports:
+      - "5434:5432"
+    volumes:
+      - pg_rns_data:/var/lib/postgresql/data
+
+  # --- 3. Application Services (Build and run the MS) ---
+  uss-service:
+    build: ./user-social-service
+    container_name: uss_service
+    ports:
+      - "3000:3000"
+    environment:
+      DB_HOST: postgres-uss
+      DB_PORT: 5432
+      KAFKA_BROKERS: kafka:29092
+    depends_on:
+      - postgres-uss
+      - kafka
+
+  ems-service:
+    build: ./event-management-service
+    container_name: ems_service
+    ports:
+      - "3001:3001"
+    environment:
+      DB_HOST: postgres-ems
+      DB_PORT: 5432
+      KAFKA_BROKERS: kafka:29092
+      USS_BASE_URL: http://uss-service:3000
+    depends_on:
+      - postgres-ems
+      - kafka
+      - uss-service
+
+  rns-service:
+    build: ./notification-service
+    container_name: rns_service
+    ports:
+      - "3002:3002"
+    environment:
+      REDIS_HOST: redis
+      DB_HOST: postgres-rns
+      DB_PORT: 5432
+      KAFKA_BROKERS: kafka:29092
+      USS_BASE_URL: http://uss-service:3000
+    depends_on:
+      - postgres-rns
+      - redis
+      - kafka
+
+  drs-service:
+    build: ./discovery-recommendation-service
+    container_name: drs_service
+    ports:
+      - "3003:3003"
+    environment:
+      MONGO_URI: mongodb://mongodb:27017/campus_connect_drs
+      REDIS_HOST: redis
+      KAFKA_BROKERS: kafka:29092
+    depends_on:
+      - mongodb
+      - redis
+      - kafka
+
+  graphql-gateway:
+    build: ./graphql-gateway-service
+    container_name: graphql_gateway
+    ports:
+      - "3004:3004"
+    environment:
+      USS_URL: http://uss-service:3000
+      EMS_URL: http://ems-service:3001
+      DRS_URL: http://drs-service:3003
+    depends_on:
+      - uss-service
+      - ems-service
+      - drs-service
+
+volumes:
+  pg_uss_data:
+  pg_ems_data:
+  pg_rns_data:

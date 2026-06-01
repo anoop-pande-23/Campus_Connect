@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kibana-dashboard-ingress
+  namespace: logging
+  annotations:
+    # Use the same class as your main ingress for consistency
+    # kubernetes.io/ingress.class: "nginx" 
+    # CRITICAL: Since Kibana often needs time to load, increase timeouts.
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "300" 
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: campus-connect.ingress.cc.vg-project.shoot.canary.k8s-hana.ondemand.com # Use your existing external host
+    http:
+      paths:
+      - path: /logs
+        pathType: Prefix
+        backend:
+          service:
+            name: kibana # Simple service name (in the same namespace as this Ingress)
+            port:
+              number: 5601 # The internal ClusterIP port
