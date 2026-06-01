@@ -33,7 +33,7 @@ spec:
     spec:
       containers:
         - name: rns-app
-          image: vipul710/rns-service:latest
+          image: anoop-pande-23/rns-service:latest
           ports:
             - containerPort: 3002
           env:

@@ -33,7 +33,7 @@ spec:
     spec:
       containers:
         - name: drs-app
-          image: vipul710/drs-service:latest
+          image: anoop-pande-23/drs-service:latest
           ports:
             - containerPort: 3003
           env:

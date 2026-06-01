@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: vipul710/campus-connect-frontend:latest
+        image: anoop-pande-23/campus-connect-frontend:latest
         ports:
         - containerPort: 80
         resources:

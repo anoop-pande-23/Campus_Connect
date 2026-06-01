@@ -162,6 +162,6 @@ SELECT COUNT(*) FROM events WHERE title LIKE 'LT Event%';
 ```bash
 # Build and push multi-architecture Docker images
 docker buildx build --platform linux/amd64,linux/arm64 \
-  -t vipul710/uss-service:latest \
+  -t anoop-pande-23/uss-service:latest \
   --push .
 ```
